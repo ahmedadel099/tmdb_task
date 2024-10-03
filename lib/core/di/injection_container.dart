@@ -4,7 +4,6 @@ import '../../data/repositories/person_repository.dart';
 import '../../presentation/bloc/person_image_bloc.dart';
 import '../api/api_client.dart';
 import '../../presentation/bloc/person_bloc.dart';
-import '../../presentation/bloc/person_details_bloc.dart';
 
 final getIt = GetIt.instance;
 

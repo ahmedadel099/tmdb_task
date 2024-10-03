@@ -3,6 +3,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:tmdb_task_app/data/models/person_image.dart';
+import '../../core/network/network_info.dart';
 import '../../data/models/person.dart';
 import '../../data/models/person_details.dart';
 import '../../data/repositories/person_repository.dart';
@@ -12,6 +13,9 @@ abstract class PersonEvent extends Equatable {
   @override
   List<Object> get props => [];
 }
+
+class CheckConnectivity extends PersonEvent {}
+
 
 class FetchPersons extends PersonEvent {}
 
@@ -23,6 +27,8 @@ class FetchPersonDetails extends PersonEvent {
   @override
   List<Object> get props => [personId];
 }
+
+
 
 // States
 abstract class PersonState extends Equatable {
@@ -56,6 +62,15 @@ class PersonDetailsLoaded extends PersonState {
   List<Object> get props => [personDetails, images];
 }
 
+class PersonOffline extends PersonState {
+  final List<Person> cachedPersons;
+
+  PersonOffline({required this.cachedPersons});
+
+  @override
+  List<Object> get props => [cachedPersons];
+}
+
 
 class PersonError extends PersonState {
   final String message;
@@ -69,12 +84,15 @@ class PersonError extends PersonState {
 // BLoC
 class PersonBloc extends Bloc<PersonEvent, PersonState> {
   final PersonRepository repository;
+    final NetworkInfo networkInfo;
+
   int _currentPage = 1;
 
-  PersonBloc({required this.repository}) : super(PersonInitial()) {
+  PersonBloc({required this.repository, required this.networkInfo})
+      : super(PersonInitial()) {
     on<FetchPersons>(_onFetchPersons);
-        on<FetchPersonDetails>(_onFetchPersonDetails);
-
+    on<FetchPersonDetails>(_onFetchPersonDetails);
+    on<CheckConnectivity>(_onCheckConnectivity);
   }
 
   Future<void> _onFetchPersons(
@@ -82,6 +100,13 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
     if (state is PersonLoaded && (state as PersonLoaded).hasReachedMax) return;
 
     try {
+      final isConnected = await networkInfo.isConnected;
+      if (!isConnected) {
+        final cachedPersons = repository.getCachedPeople();
+        emit(PersonOffline(cachedPersons: cachedPersons));
+        return;
+      }
+
       if (state is PersonInitial) {
         emit(PersonLoading());
         final persons = await repository.getPopularPeople(_currentPage);
@@ -102,7 +127,6 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
       emit(PersonError(message: 'Failed to fetch persons: $e'));
     }
   }
-
    Future<void> _onFetchPersonDetails(
       FetchPersonDetails event, Emitter<PersonState> emit) async {
     emit(PersonDetailsLoading());
@@ -112,6 +136,17 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
       emit(PersonDetailsLoaded(personDetails: personDetails, images: images ));
     } catch (e) {
       emit(PersonError(message: 'Failed to fetch person details: $e'));
+    }
+  }
+
+  Future<void> _onCheckConnectivity(
+      CheckConnectivity event, Emitter<PersonState> emit) async {
+    final isConnected = await networkInfo.isConnected;
+    if (!isConnected) {
+      final cachedPersons = repository.getCachedPeople();
+      emit(PersonOffline(cachedPersons: cachedPersons));
+    } else {
+      add(FetchPersons());
     }
   }
 
