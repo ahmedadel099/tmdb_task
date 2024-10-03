@@ -1,5 +1,3 @@
-// lib/presentation/bloc/person_bloc.dart
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:tmdb_task_app/data/models/person_image.dart';
@@ -84,11 +82,11 @@ class PersonError extends PersonState {
 // BLoC
 class PersonBloc extends Bloc<PersonEvent, PersonState> {
   final PersonRepository repository;
-    final NetworkInfo networkInfo;
+    final NetworkInfo? networkInfo;
 
   int _currentPage = 1;
 
-  PersonBloc({required this.repository, required this.networkInfo})
+  PersonBloc({required this.repository,  this.networkInfo})
       : super(PersonInitial()) {
     on<FetchPersons>(_onFetchPersons);
     on<FetchPersonDetails>(_onFetchPersonDetails);
@@ -100,7 +98,7 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
     if (state is PersonLoaded && (state as PersonLoaded).hasReachedMax) return;
 
     try {
-      final isConnected = await networkInfo.isConnected;
+      final isConnected = await networkInfo!.isConnected;
       if (!isConnected) {
         final cachedPersons = repository.getCachedPeople();
         emit(PersonOffline(cachedPersons: cachedPersons));
@@ -139,12 +137,14 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
     }
   }
 
-  Future<void> _onCheckConnectivity(
+Future<void> _onCheckConnectivity(
       CheckConnectivity event, Emitter<PersonState> emit) async {
-    final isConnected = await networkInfo.isConnected;
+    print('CheckConnectivity triggered');
+    final isConnected = await networkInfo!.isConnected;
     if (!isConnected) {
       final cachedPersons = repository.getCachedPeople();
       emit(PersonOffline(cachedPersons: cachedPersons));
+      print('Emitting PersonOffline state');
     } else {
       add(FetchPersons());
     }

@@ -1,14 +1,13 @@
-// lib/core/api/api_client.dart
-
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiClient {
   final Dio _dio;
 
   ApiClient(this._dio) {
     _dio.options.baseUrl = 'https://api.themoviedb.org/3';
-    _dio.options.queryParameters = {'api_key': '3113eca177ad9d625cfea6e284208461'};
-  }
+    final apiKey = dotenv.env['TMDB_API_KEY'] ?? '';
+    _dio.options.queryParameters = {'api_key': apiKey};  }
 
   Future<Response> get(String path,
       {Map<String, dynamic>? queryParameters}) async {

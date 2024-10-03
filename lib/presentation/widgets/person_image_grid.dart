@@ -1,5 +1,3 @@
-// lib/presentation/widgets/image_grid_view.dart
-
 import 'package:flutter/material.dart';
 import 'package:tmdb_task_app/data/models/person_image.dart';
 import 'full_screen_image.dart';

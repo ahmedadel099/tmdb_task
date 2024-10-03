@@ -1,5 +1,3 @@
-// lib/presentation/pages/person_details_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/person_repository.dart';
@@ -15,16 +13,16 @@ class PersonDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PersonBloc(repository: getIt<PersonRepository>())
+      create: (_) => PersonBloc(repository: getIt<PersonRepository>(),  )
         ..add(FetchPersonDetails(personId)),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Person Details'),
+          title: const Text('Person Details'),
         ),
         body: BlocBuilder<PersonBloc, PersonState>(
           builder: (context, state) {
             if (state is PersonDetailsLoading) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (state is PersonDetailsLoaded) {
               final person = state.personDetails;
               return SingleChildScrollView(
@@ -46,19 +44,19 @@ class PersonDetailsPage extends StatelessWidget {
                           Text(person.name,
                               style:
                                   Theme.of(context).textTheme.headlineMedium),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           if (person.birthday != null)
                             Text('Birthday: ${person.birthday}'),
                           if (person.placeOfBirth != null)
                             Text('Place of Birth: ${person.placeOfBirth}'),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           if (person.biography != null)
                             Text(person.biography!,
                                 style: Theme.of(context).textTheme.bodyMedium),
-                          SizedBox(height: 24),
+                          const SizedBox(height: 24),
                           Text('Images',
                               style: Theme.of(context).textTheme.headlineLarge),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           ImageGridView(images: state.images),
                         ],
                       ),

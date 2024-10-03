@@ -1,10 +1,9 @@
-// lib/presentation/pages/popular_people_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/person.dart';
 import '../../data/repositories/person_repository.dart';
 import '../bloc/person_bloc.dart';
+import '../widgets/bottom_loader.dart';
 import '../widgets/person_list_item.dart';
 import '../../core/di/injection_container.dart';
 import '../../core/network/network_info.dart';
@@ -105,18 +104,3 @@ class _PopularPeopleViewState extends State<PopularPeopleView> {
   }
 }
 
-class BottomLoader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      child: Center(
-        child: SizedBox(
-          width: 33,
-          height: 33,
-          child: CircularProgressIndicator(strokeWidth: 1.5),
-        ),
-      ),
-    );
-  }
-}

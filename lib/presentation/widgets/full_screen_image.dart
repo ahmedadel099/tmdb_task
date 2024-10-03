@@ -1,5 +1,3 @@
-// lib/presentation/pages/full_screen_image_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';

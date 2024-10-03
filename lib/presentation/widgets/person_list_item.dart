@@ -14,37 +14,40 @@ class PersonListItem extends StatelessWidget {
         ? 'https://image.tmdb.org/t/p/w200${person.profilePath}'
         : null;
 
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 30,
-        child: imageUrl != null
-            ? CachedNetworkImage(
-                imageUrl: imageUrl,
-                imageBuilder: (context, imageProvider) => Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+        leading: CircleAvatar(
+          radius: 30,
+          child: imageUrl != null
+              ? CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  imageBuilder: (context, imageProvider) => Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-                placeholder: (context, url) => CircularProgressIndicator(),
-                errorWidget: (context, url, error) => Icon(Icons.error),
-              )
-            : Icon(Icons.person, size: 30),
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => Icon(Icons.error),
+                )
+              : Icon(Icons.person, size: 30),
+        ),
+        title: Text(person.name),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PersonDetailsPage(
+                personId: person.id,
+              ),
+            ),
+          );
+        },
       ),
-      title: Text(person.name),
-      subtitle: Text(imageUrl ?? 'No image URL'),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PersonDetailsPage(personId: person.id,),
-          ),
-        );
-      },
     );
   }
 }
-
