@@ -2,7 +2,9 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:tmdb_task_app/data/models/person_image.dart';
 import '../../data/models/person.dart';
+import '../../data/models/person_details.dart';
 import '../../data/repositories/person_repository.dart';
 
 // Events
@@ -12,6 +14,15 @@ abstract class PersonEvent extends Equatable {
 }
 
 class FetchPersons extends PersonEvent {}
+
+class FetchPersonDetails extends PersonEvent {
+  final int personId;
+
+  FetchPersonDetails(this.personId);
+
+  @override
+  List<Object> get props => [personId];
+}
 
 // States
 abstract class PersonState extends Equatable {
@@ -33,6 +44,19 @@ class PersonLoaded extends PersonState {
   List<Object> get props => [persons, hasReachedMax];
 }
 
+class PersonDetailsLoading extends PersonState {}
+
+class PersonDetailsLoaded extends PersonState {
+  final PersonDetails personDetails;
+  final List<PersonImage> images;
+
+  PersonDetailsLoaded({required this.personDetails, required this.images});
+
+  @override
+  List<Object> get props => [personDetails, images];
+}
+
+
 class PersonError extends PersonState {
   final String message;
 
@@ -49,6 +73,8 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
 
   PersonBloc({required this.repository}) : super(PersonInitial()) {
     on<FetchPersons>(_onFetchPersons);
+        on<FetchPersonDetails>(_onFetchPersonDetails);
+
   }
 
   Future<void> _onFetchPersons(
@@ -76,4 +102,17 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
       emit(PersonError(message: 'Failed to fetch persons: $e'));
     }
   }
+
+   Future<void> _onFetchPersonDetails(
+      FetchPersonDetails event, Emitter<PersonState> emit) async {
+    emit(PersonDetailsLoading());
+    try {
+      final personDetails = await repository.getPersonDetails(event.personId);
+      final  images = await repository.getPersonImages(event.personId);
+      emit(PersonDetailsLoaded(personDetails: personDetails, images: images ));
+    } catch (e) {
+      emit(PersonError(message: 'Failed to fetch person details: $e'));
+    }
+  }
+
 }
