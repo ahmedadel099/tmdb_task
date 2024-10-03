@@ -2,33 +2,32 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/models/person.dart';
 import '../../data/repositories/person_repository.dart';
 import '../bloc/person_bloc.dart';
-import '../../core/di/injection_container.dart';
 import '../widgets/person_list_item.dart';
+import '../../core/di/injection_container.dart';
+import '../../core/network/network_info.dart';
 
 class PopularPeoplePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Popular People'),
-      ),
-      body: BlocProvider(
-        create: (_) => PersonBloc(repository: getIt<PersonRepository>())
-          ..add(FetchPersons()),
-        child: PopularPeopleList(),
-      ),
+    return BlocProvider(
+      create: (_) => PersonBloc(
+        repository: getIt<PersonRepository>(),
+        networkInfo: getIt<NetworkInfo>(),
+      )..add(CheckConnectivity()),
+      child: PopularPeopleView(),
     );
   }
 }
 
-class PopularPeopleList extends StatefulWidget {
+class PopularPeopleView extends StatefulWidget {
   @override
-  _PopularPeopleListState createState() => _PopularPeopleListState();
+  _PopularPeopleViewState createState() => _PopularPeopleViewState();
 }
 
-class _PopularPeopleListState extends State<PopularPeopleList> {
+class _PopularPeopleViewState extends State<PopularPeopleView> {
   final _scrollController = ScrollController();
   late PersonBloc _personBloc;
 
@@ -41,29 +40,50 @@ class _PopularPeopleListState extends State<PopularPeopleList> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PersonBloc, PersonState>(
-      builder: (context, state) {
-        if (state is PersonInitial) {
-          return Center(child: CircularProgressIndicator());
-        } else if (state is PersonLoading) {
-          return Center(child: CircularProgressIndicator());
-        } else if (state is PersonLoaded) {
-          return ListView.builder(
-            itemBuilder: (BuildContext context, int index) {
-              return index >= state.persons.length
-                  ? BottomLoader()
-                  : PersonListItem(person: state.persons[index]);
-            },
-            itemCount: state.hasReachedMax
-                ? state.persons.length
-                : state.persons.length + 1,
-            controller: _scrollController,
-          );
-        } else if (state is PersonError) {
-          return Center(child: Text('Failed to fetch persons'));
-        }
-        return Container();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Popular People'),
+      ),
+      body: BlocBuilder<PersonBloc, PersonState>(
+        builder: (context, state) {
+          if (state is PersonInitial) {
+            return Center(child: CircularProgressIndicator());
+          } else if (state is PersonLoading) {
+            return Center(child: CircularProgressIndicator());
+          } else if (state is PersonLoaded) {
+            return _buildPersonList(state.persons, state.hasReachedMax);
+          } else if (state is PersonOffline) {
+            return Column(
+              children: [
+                Container(
+                  color: Colors.red,
+                  padding: EdgeInsets.all(8),
+                  child: Text(
+                    'You are offline. Showing cached data.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                Expanded(child: _buildPersonList(state.cachedPersons, true)),
+              ],
+            );
+          } else if (state is PersonError) {
+            return Center(child: Text(state.message));
+          }
+          return Container();
+        },
+      ),
+    );
+  }
+
+  Widget _buildPersonList(List<Person> persons, bool hasReachedMax) {
+    return ListView.builder(
+      itemBuilder: (BuildContext context, int index) {
+        return index >= persons.length
+            ? BottomLoader()
+            : PersonListItem(person: persons[index]);
       },
+      itemCount: hasReachedMax ? persons.length : persons.length + 1,
+      controller: _scrollController,
     );
   }
 
