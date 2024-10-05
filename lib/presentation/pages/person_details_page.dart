@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/person_repository.dart';
-import '../bloc/person_bloc.dart';
+import '../bloc/person/person_bloc.dart';
 import '../../core/di/injection_container.dart';
+import '../bloc/person/person_event.dart';
+import '../bloc/person/person_state.dart';
 import '../widgets/person_image_grid.dart';
 
 class PersonDetailsPage extends StatelessWidget {
